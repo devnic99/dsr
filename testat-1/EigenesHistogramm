@@ -29,7 +29,7 @@ myhistogram <- function(x, n = length(x)-1, min = base::min(x), max= base::max(x
   
 
   # Erstellt eine leere Liste für die Intervallgrenzen und Anzahlen
-  borders <- seq(from = min, to max, by= delta_b)
+  borders <- seq(from = min, to = max, by= delta_b)
   counts <- integer(n)
   
   
