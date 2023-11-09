@@ -1,0 +1,137 @@
+---
+title: "Plot"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r echo = F, warning = F, message = F}
+library(knitr)
+library(ggplot2)
+library(MASS)
+library(gridExtra)
+# Laden Sie benötigte Libraries...
+```
+# Visualisierung von Datensätzen
+
+In diesem Abschnitt sollen alle Graphiken mit _ggplot_ und alle Tabellen mit `kable` erstellt werden.
+
+## Körpergewicht und Gehirngewicht bei Säugetieren
+
+Nutzen Sie den Datensatz `MASS::mammals`. In der Hilfe finden Sie Hinweise, was dort gezeigt ist.
+
+### Körpergewicht vs. Gehirngewicht
+
+Erzeugen Sie diese Graphik, indem Sie den nachfolgenden Chunk vervollständigen. Die gezeigten Tiernamen sind Pig, Rat, African elephant, Chimpanzee, Cat, Human, Little brown bat.
+
+```{r echo = F, out.width = "60%", fig.align = "center", fig.cap = "Körper- vs. Gehirngewicht."}
+include_graphics("fig/tiere-gewicht.jpg")
+```
+
+Tipp: Sie dürfen (und sollen) weitere Libraries nutzen, wenn diese hilfreich sind.
+
+```{r}
+# Ihre Lösung:
+
+mammals = MASS::mammals
+all_labels=row.names(mammals)
+labels = c('Pig', 'Rat', 'African elephant', 'Chimpanzee', 'Cat', 'Human', 'Little brown bat')
+#print(row.names(mammals))
+#print(c(row.names(mammals) %in% labels))
+#print(mammals[c(row.names(mammals) %in% labels), ])
+print(length(rownames(mammals)))
+ggplot(mammals, aes(x=body, y=brain)) + 
+  geom_point(size=2) +
+  scale_x_continuous(trans = 'log10') + 
+  scale_y_continuous(trans = 'log10') +
+  xlab('Körpergewicht (kg)') +
+  ylab('Gehirngewicht (g)') +
+  geom_text(data = mammals[c(row.names(mammals) %in% labels), ], 
+            label=row.names(mammals[c(row.names(mammals) %in% labels), ]), color = 'blue')
+
+```
+
+### Gehirn- zu Körpergewicht-Verhältnis
+
+Geben Sie diejenigen 10 Tiere als Tabelle im Notebook aus, die das größte Gehirn- zu Körpergewicht-Verhältnis $r$ haben. Die Liste soll nach $r$ absteigend sortiert sein und den Tiernamen und $r$ enthalten.
+
+Vervollständigen Sie diesen Chunk:
+
+```{r}
+# Ihre Lösung:
+library(dplyr)
+df_ratio_desc = mammals |> mutate(r = brain*0.001/body) |> arrange(desc(r)) |> dplyr::select(r)
+knitr::kable(head(df_ratio_desc, 10))
+```
+
+Geben Sie nun -- wie eben -- diejenigen 10 Tiere als Tabelle aus, die das **kleinste** Gehirn- zu Körpergewicht-Verhältnis $r$ haben. Die Liste soll nach $r$ absteigend sortiert sein.
+
+Vervollständigen Sie diesen Chunk:
+
+```{r}
+# Ihre Lösung:
+df_ratio_asc = mammals |> mutate(r = brain*0.001/body) |> arrange(r) |> dplyr::select(r)
+knitr::kable(head(df_ratio_asc, 10))
+```
+## Blutdruckveränderung bei Medikamentengabe im Tierversuch
+
+Nutzen Sie den Datensatz `MASS::Rabbit`. In der Hilfe finden Sie Hinweise, was dort gezeigt ist.
+
+### Überblick über Verlauf bei allen Kaninchen
+
+Plotten Sie im folgenden Chunk den Verlauf der Blutdruckveränderung (_y_-Achse) bei gegebener Dosis Phenylbiguanide (_x_-Achse). Dies soll in einem Diagramm mit Unterdiagrammen erfolgen: ein Unterdiagramm zeigt den Verlauf für je ein Kaninchen und der Behandlung (Placebo oder MDL 72222).
+
+```{r}
+# Ihre Lösung:
+
+rabbit = MASS::Rabbit
+#ggplot(data=rabbit) +
+#  geom_boxplot(mapping=aes(group=Dose, y=BPchange))
+
+#ggplot(data=rabbit) +
+#  geom_point(aes(x=Dose, y=BPchange)) #+geom_line(aes(group_by(animal)))
+
+#ggplot() +
+#  geom_line(data=rabbit[rabbit$Treatment == 'MDL',], mapping=aes(group=Animal,x=Dose, y=BPchange, color=Animal)) +
+#  geom_line(data=rabbit[rabbit$Treatment == 'Control',], mapping=aes(group=Animal,x=Dose, y=BPchange, color=Animal), #linetype='dashed')
+
+p1 = ggplot(data=rabbit[rabbit$Treatment == 'MDL',]) +
+  geom_line(aes(group=Animal,x=Dose, y=BPchange, color=Animal)) +
+  ggtitle('MDL')
+
+p2 = ggplot(data=rabbit[rabbit$Treatment == 'Control',]) +
+  geom_line(aes(group=Animal,x=Dose, y=BPchange, color=Animal)) +
+  ggtitle('Control')
+  
+grid.arrange(p1, p2, nrow=2)
+
+
+#animals = rabbit |> dplyr::select(Animal) |> distinct()
+#for (animal in c(animals$Animal)){
+#  ggplot(data=rabbit[rabbit$Animal==animal,]) + 
+#    geom_line(aes(group=Treatment, x=Dose, y=BPchange, color=Treatment))
+#}
+
+
+  
+```
+
+### Boxplots der Blutdruckänderung je Dosis
+
+Erzeugen Sie ein Diagramm, das in zwei Unterdiagrammen für die Placebo- und die MLD-Gruppe Boxplots erstellt. Die Boxplots geben die Verteilung der Blutdruckänderung je Dosis an. In Anlehnung an das obige Diagramm sollen die Boxplots vertikal ausgerichtet sein.
+
+```{r}
+# Ihre Lösung:
+control = rabbit[rabbit$Treatment =='Control',]
+mdl = rabbit[rabbit$Treatment =='MDL',]
+
+p1 = ggplot(data = control) +
+  geom_boxplot(aes(group=Dose, y=BPchange, x=Dose)) +
+  ggtitle('Verteilung der Blutdruckänderung pro Placebo')
+
+p2 = ggplot(data = mdl) +
+  geom_boxplot(aes(group=Dose, y=BPchange, x=Dose)) +
+  ggtitle('Verteilung der Blutdruckänderung pro Dosis MDL')
+
+grid.arrange(p1,p2, nrow=2)
+```

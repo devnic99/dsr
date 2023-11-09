@@ -1,0 +1,116 @@
+---
+title: "Impfungen"
+output: html_notebook
+---
+
+```{r echo = F, warning = F, message = F}
+# Benötigte Libraries
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(ggplot2)
+library(purrr)
+```
+# Covid19: Impffortschritt in Deutschland
+
+In dieser Aufgabe geht es um den Verlauf der Corona-Impfungen in Deutschland. Die folgenden URLs enthalten Daten ab 2020:
+
+  * https://impfdashboard.de/static/data/germany_vaccinations_timeseries_v2.tsv
+  * https://impfdashboard.de/static/data/germany_deliveries_timeseries_v2.tsv
+  * https://impfdashboard.de/static/data/germany_vaccinations_by_state.tsv
+
+Sie sind der Webseite https://impfdashboard.de entnommen.
+
+
+## Einlesen der Daten
+
+Lesen Sie die drei Dateien je in einen Data Frame ein mit den Variablennamen:
+
+ * `vacc`
+ * `deliv`
+ * `vaccState`
+
+Wandeln Sie die Datums- und Zeitangaben von einem String in ein R-Datumsobjekt um. Geben Sie die ersten drei Zeilen und Spalten dieser Data Frames aus.
+
+```{r}
+# Ihre Lösung:
+# germany_vaccinations_timeseries_v2.tsv in Variable vacc
+# germany_deliveries_timeseries_v2.tsv in Variable deliv
+# germany_vaccinations_by_state.tsv in Variable vaccState
+
+
+vacc = read.csv(url('https://impfdashboard.de/static/data/germany_vaccinations_timeseries_v2.tsv'), sep='\t')
+vacc$date = as.Date(vacc$date, "%Y-%m-%d")
+print(head(vacc, 3))
+
+deliv = read.csv(url('https://impfdashboard.de/static/data/germany_deliveries_timeseries_v2.tsv'), sep='\t')
+deliv$date = as.Date(deliv$date, "%Y-%m-%d")
+print(head(deliv, 3))
+
+vaccState = read.csv(url('https://impfdashboard.de/static/data/germany_vaccinations_by_state.tsv'), sep='\t')
+print(head(vaccState, 3))
+
+```
+
+## Verimpfte Impfdosen pro Tag
+
+Es soll untersucht werden, wie oft welcher Impfstoff an welchem Tag verimpft wurde.
+
+### Transformation
+
+Der Data Frame `vacc` enthält leider keine Angaben, wie oft ein Impfstoff eines Herstellers täglich verabreicht wurde. Erzeugen Sie aus `vacc` einen neuen Data Frame `vacc2`, der die folgende Struktur hat:
+
+|Datum|Hersteller|Impfdosen pro Tag|
+|-|-|-|
+|09.04.21|biontech|123456|
+|09.04.21|moderna|12345|
+|...|...|...|
+Table: Neue Struktur: Data Frame `vacc2`.
+
+Wie Sie die Impfstoffe (biontech, moderna, astra) nennen, bleibt Ihnen überlassen -- solange die Bezeichnungen konsistent und schlüssig sind.
+
+Geben Sie die letzten Zeilen von `vacc2` als `kable` aus. Tipp: `tail` gibt die letzten Zeilen eines Data Frames an (analog zu `head`).
+
+```{r}
+# Ihre Lösung:
+vacc2 = vacc |> mutate(
+  biontech = dosen_biontech_kumulativ - lag(dosen_biontech_kumulativ, 1, 0),
+  moderna = dosen_moderna_kumulativ  - lag(dosen_moderna_kumulativ, 1, 0),
+  astra = dosen_astra_kumulativ  - lag(dosen_astra_kumulativ, 1, 0)) |> select(date, biontech, moderna, astra) |> pivot_longer(cols=c(2,3,4))
+
+kable(tail(vacc2,10))
+
+```
+
+### Plot der täglichen Impfdosen nach Hersteller
+
+Plotten Sie mit _ggplot_ den Verlauf der täglichen Impfdosen für jeden Hersteller. Die _x_-Achse zeigt das Datum und die _y_-Achse die Anzahl der Impfdosen pro Tag. Überlegen Sie, welcher Diagrammtyp dafür am besten geeignet ist.
+
+```{r}
+# Ihre Lösung:
+ggplot(vacc2) +
+  geom_bar(aes(x=date, y=value, group=name, color=name), stat='identity')
+```
+
+## Zeitverzug Auslieferung bis Verimpfung
+
+Es soll untersucht werden, wie schnell gelieferte Impfmengen der einzelnen Impfstoffe auch verimpft wurden.
+
+Es bietet sich dafür an, die akkumulierten Impfdosen mit den akkumulierten Impflieferungen zeitlich plotten. Je größer die Lücke zwischen der Liefermenge und der Impfungen ist, desto mehr Impfstoff blieb liegen. Die Graphik soll Angaben für ganz Deutschland und nicht für die einzelnen Bundesländer zeigen.
+
+Hinweis: Auch hier ist eine Vorverarbeitung der Daten nötig.
+
+Plotten Sie dies mit _ggplot_:
+
+```{r}
+# Ihre Lösung:
+used = vacc |> select(date, dosen_kumulativ)
+delivered = aggregate(deliv$dosen, by=list(date=deliv$date), FUN=sum) |> rename(dosen=x)
+delivered$dosen = delivered$dosen |> cumsum()
+
+
+ggplot() +
+  geom_bar(data=delivered, aes(x=date, y=dosen), stat='identity', color='red', ) +
+  #geom_label('Lieferung') +
+    geom_bar(data=used, aes(x=date, y=dosen_kumulativ), stat='identity')
+```
