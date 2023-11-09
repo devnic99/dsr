@@ -25,37 +25,12 @@ Es ist natürlich **nicht** erlaubt, in der eigenen Funktion andere Funktionen z
 
 Hier ein Beispiel:
 ```{r eval = F}
-# Bitte mit echter Lösung in myhistogram.R ersetzen:
-myhistogram = function(x, n = length(x)-1, min = base::min(x) as.integer(.Machine$integer.min), my_max = as.integer(.Machine$integer.max)) { # in extra file, als default nicht min(x) max(x) sondern einfach maximal mögliches
-  delta_b = abs(my_max-my_min) / n  # abs eig nicht nötig
-  borders = seq(from = my_min, to = my_max, by = delta_b)
-  counts = replicate(length(borders)-1, 0)
-  ignored_vals = c()
-
-  for (ele in x) {
-    if (ele < my_min || ele > my_max) {     # vlt if in schleife weg
-      ignored_vals = c(ignored_vals, ele)
-    } else {
-      for (i in 1:(length(borders)-1)) {
-        if (ele >= borders[i] && ele < borders[i+1]) {
-          counts[i] = counts[i] + 1
-          break
-        }
-      }
-    }
-  }
-
-  if (length(ignored_vals) != 0) {
-    warn_msg = paste("Folgende Werte befinden sich außerhalb des vorgegebenen Bereichs: ", paste(ignored_vals, collapse = ", "))
-    warning(warn_msg)
-  }
-
-  res = list(borders = borders, counts = counts)
-  return(res)
-}
-
+source("myhistogram.R")
 x = seq(-5, 6, by = 1 / 3)
-l = myhistogram(x)
+
+l = myhistogram(x, 5, -3)
+
+print(l)
 print(l$borders)
 print(l$counts)
 ```
@@ -75,20 +50,23 @@ Es wird eine Warnung ausgeben:
 ```
 
 ```{r}
+source("myhistogram.R")
 x = seq(-5, 6, by = 1 / 3)
-myhistogram(x, n = 10, my_min = -5, my_max = 6)
-solution = list(
+myhistogram(x, n = 10, min = -5, max = 6)
+solution1 = list(
   borders = c(-5.0, -3.9, -2.8, -1.7, -0.6, 0.5, 1.6, 2.7, 3.8, 4.9, 6.0),
   counts = c(4, 3, 3, 4, 3, 3, 4, 3, 3, 3)
 )
+expected_warning = 'Folgende Werte befinden sich außerhalb des vorgegebenen Bereichs:  6'
 ```
 
 ### Beispiel 2
 
 ```{r}
+source("myhistogram.R")
 x = seq(-5, 6, by = 1 / 3)
-myhistogram(x, n = 5, my_min = -10, my_max = 10)
-solution = list(borders = c(-10, -6, -2, 2, 6, 10),
+myhistogram(x, n = 5, min = -10, max = 10)
+solution2 = list(borders = c(-10, -6, -2, 2, 6, 10),
                 counts = c(0, 9, 12, 12, 1))
 ```
 
@@ -97,10 +75,13 @@ solution = list(borders = c(-10, -6, -2, 2, 6, 10),
 Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
 
 ```{r}
-#x = seq(-5, 6, by = 1 / 3)
-#myhistogram(x, n = 5, my_min = -10, my_max = 10)
-#solution = list(borders = c(-10, -6, -2, 2, 6, 10),
-#                counts = c(0, 9, 12, 12, 1))
+source("myhistogram.R")
+x3 = c(10, 12, 15, 20, 25, 30, 35, 40, 45)
+myhistogram(x3, n = 5, min = 5, max = 30)
+solution3 = list(borders = c(5, 14, 23, 32, 41, 50),
+                 counts = c(2, 2, 2, 2, 1))
+expected_warning = 'Folgende Werte befinden sich außerhalb des vorgegebenen Bereichs:  
+30, 35, 40, 45'
 ```
 
 ### Beispiel 4
@@ -108,10 +89,11 @@ Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
 Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
 
 ```{r}
-#x = seq(-5, 6, by = 1 / 3)
-#myhistogram(x, n = 5, my_min = -10, my_max = 10)
-#solution = list(borders = c(-10, -6, -2, 2, 6, 10),
-#                counts = c(0, 9, 12, 12, 1))
+source("myhistogram.R")
+x2 = c(-2, -1, 0, 1, 2, 3, 4, 5)
+myhistogram(x2, n = 4, min = -3, max = 6)
+solution4 = list(borders = c(-3, -0.75, 1.50, 3.75, 6.00),
+                 counts = c(2, 2, 2, 2))
 ```
 
 ### Beispiel 5
@@ -119,10 +101,11 @@ Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
 Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
 
 ```{r}
-#x = seq(-5, 6, by = 1 / 3)
-#myhistogram(x, n = 5, my_min = -10, my_max = 10)
-#solution = list(borders = c(-10, -6, -2, 2, 6, 10),
-#                counts = c(0, 9, 12, 12, 1))
+source("myhistogram.R")
+x5 = rep(0, 10)
+myhistogram(x5, n = 4, min = -3, max = 6)
+solution5 = list(borders = c(-3, -1.5, 0, 1.5, 3, 4.5, 6),
+                 counts = c(0, 10, 0, 0, 0, 0))
 ```
 
 ## Barplot
@@ -134,16 +117,48 @@ Tipp: Der Parameter `stat` von `geom_bar` ist wichtig.
 Vervollständigen Sie den Chunk. Die Kommentare sollen zu Anweisungen umgewandelt werden:
 
 ```{r}
+source("myhistogram.R")
 library("ggplot2")
+library("knitr")
 set.seed(1)
 x = rnorm(0, 1, n = 1000)
 h = myhistogram(x, n = 20)
 
 mittelpunkte = (h$borders[-1] + h$borders[-length(h$borders)]) / 2
-print(h)
-print(mittelpunkte)
 
 df = data.frame(borders = mittelpunkte, counts = h$counts[])
+
 ggplot(df) +
-  geom_bar(aes(x = borders, y = counts, fill=counts), stat="identity")
+  geom_bar(aes(x = borders, y = counts, fill = counts), stat = "identity")
+
+ggsave(filename = 'myhistogram.jpg')
+```
+
+Inhalt von myhistogram.R:
+```{r}
+myhistogram = function(x, n = length(x)-1, min = base::min(x), max = base::max(x)) {
+
+  delta_b = (max-min) / n  
+  borders = seq(from = min, to = max, by = delta_b)
+  counts = replicate(length(borders)-1, 0)
+
+  ignored_vals = x[x < min | x >= max]
+  if (length(ignored_vals) > 0) {
+    warn_msg = paste("Folgende Werte befinden sich außerhalb des vorgegebenen Bereichs: ", 
+    paste(unlist(sort(ignored_vals)), collapse = ", "))
+    warning(warn_msg)
+  }
+
+  for (ele in x) {
+    for (i in 1:n) {
+      if (ele >= borders[i] && ele < borders[i+1]) {
+        counts[i] = counts[i] + 1
+        next
+      }
+    }
+  }
+
+  res = list(borders = borders, counts = counts)
+  return(res)
+}
 ```
