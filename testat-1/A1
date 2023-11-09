@@ -1,0 +1,126 @@
+---
+title: "Eigenes Histogramm"
+output: html_document
+---
+
+# Eigenes Histogramm
+
+Es soll ein eigenes Histogramm erzeugt werden. Der Dateiname für das Skript ist `myhistogram.R`.
+
+## Funktion `myhistogram`
+
+Programmieren Sie in R die Funktion `myhistogram`, die als Parameter `x` einen Vektor aus Zahlen erhält. Die Zahlen werden in `n` Intervalle einsortiert, und es wird gezählt, wie oft eine Zahl in einem Intervall vorkommt. Der Rückgabewert ist eine Liste mit den Einträgen `borders`, die die $n+1$ Intervallgrenzen enthalten und `counts`, der die Anzahlen enthält.
+
+ * Die $n$ Intervalle sollen gleich groß sein ($\Delta b$), d.h. für die Intervallgrenzen $b_1, b_2, \ldots, b_{n+1}$ gilt $\frac{b_{i+1}-b_{i}}{n}=\Delta b$ für $i=1, 2, \ldots n$.
+ * Die äußeren Grenzen $b_1$ und $b_n$ sollen als optionale Parametern `min` und `max` an die Funktion übergeben werden. Werte aus `x`, die zu keinem Intervall gehören, sollen ignoriert werden. Es wird aber eine Warnung ausgegeben, die sagt, welche Zahlen außerhalb des Bereichs liegen.
+ * Eine Zahl $z$ gehört zum $i$-ten Intervall, falls $b_i \leq z < b_{i+1}$ gilt.
+
+Bis auf `x` sollen alle Parameter optional sein. Überlegen Sie sinnvolle Default-Werte.
+
+Es ist natürlich **nicht** erlaubt, in der eigenen Funktion andere Funktionen zu nutzen, die ein Histogramm erzeugen.
+
+Hier ein Beispiel:
+```{r eval = F}
+myhistogram <- function(x, n = length(x)-1, min = base::min(x), max= base::max(x)) {
+  
+  
+  # Berechnen der Intervallbreite
+  delta_b <- (max - min) / n
+  
+
+  # Erstellt eine leere Liste für die Intervallgrenzen und Anzahlen
+  borders <- seq(from = min, to max, by= delta_b)
+  counts <- integer(n)
+  
+  
+  # Zählt die Werte in den Intervallen und identifiziert Werte außerhalb des Bereichs
+  outside_values <- 0  # Zählvariable für Werte außerhalb des Bereichs
+  for (value in x) {
+    if (value < min || value >= max) {
+      outside_values = outside_values + 1
+    } else {
+      for (i in 1:(length(borders)-1)) {
+        if (value >= borders[i] && value < borders[i + 1]) {
+          counts[i] <- counts[i] + 1
+          break
+        }
+      }
+    }
+  }
+  
+  # Wenn Werte außerhalb des Bereichs vorhanden sind, Warnung ausgeben
+  if (outside_values > 0) {
+    warning(paste("Zahl(en) außerhalb Intervallgrenzen:", outside_values))
+  }
+  
+  # Erstellt Liste mit den Intervallgrenzen und Anzahlen
+  result <- list(borders = borders, counts = counts)
+  return(result)
+}
+
+
+```
+
+
+
+## Beispieldaten
+
+Hier zunächst zwei Beispiele.
+
+### Beispiel 1
+
+Es wird eine Warnung ausgeben:
+```
+## Warning in myhistogram(x, n = 10, min = -5, max = 6): Zahl(en) außerhalb
+## Intervallgrenzen: 6
+```
+
+```{r}
+x = seq(-5, 6, by = 1 / 3)
+myhistogram(x, n = 10, min = -5, max = 6)
+solution = list(
+  borders = c(-5.0, -3.9, -2.8, -1.7, -0.6, 0.5, 1.6, 2.7, 3.8, 4.9, 6.0),
+  counts = c(4, 3, 3, 4, 3, 3, 4, 3, 3, 3)
+)
+```
+
+### Beispiel 2
+
+```{r}
+x = seq(-5, 6, by = 1 / 3)
+myhistogram(x, n = 5, min = -10, max = 10)
+solution = list(borders = c(-10, -6, -2, 2, 6, 10),
+                counts = c(0, 9, 12, 12, 1))
+
+```
+
+### Beispiel 3
+
+Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
+
+### Beispiel 4
+
+Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
+
+### Beispiel 5
+
+Testen Sie nun hier Ihre Funktion mit weiteren Datensätzen.
+
+
+## Barplot
+
+Nutzen Sie Ihre Funktion `myhistogram` und erzeugen Sie einen Barplot mit _ggplot_. Die _x_-Achse zeigt dabei die Mitte des Intervalls und die _y_-Achse die Anzahl der Elemente in dieser Klasse.
+
+Tipp: Der Parameter `stat` von `geom_bar` ist wichtig.
+
+Vervollständigen Sie den Chunk. Die Kommentare sollen zu Anweisungen umgewandelt werden:
+
+```{r}
+set.seed(1)
+x = rnorm(0, 1, n = 1000)
+h = myhistogram(x, n = 20)
+ggplot(data = data.frame(x = h$borders[-1], y = h$counts), aes(x = x, y = y))+
+  geom_bar(stat = "identity") +
+  labs(x = "Mitte des Intervalls", y = "Anzahl der Elemente in dieser Klasse") +
+  ggtitle("Histogramm mit ggplot2")
+```
