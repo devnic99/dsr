@@ -25,17 +25,18 @@ Welche Verteilung Sie für $X_i$ nehmen, bleibt Ihnen überlassen. Es soll nur k
 # G_n: Umfang der Stichprobe
 # n: Anzahl der Zufallszahlen
 
-n_rows = 50000
+n_rows <- 50000
 
-g = data.frame(G_1 = rt(n_rows, 1),
-               G_2 = rt(n_rows, 2),
-               G_3 = rt(n_rows, 3),
-               G_10 = rt(n_rows, 10),
-               G_100 = rt(n_rows, 100),
-               G_1000 = rt(n_rows, 1000))
+g <- data.frame(
+    G_1 = rt(n_rows, 1),
+    G_2 = rt(n_rows, 2),
+    G_3 = rt(n_rows, 3),
+    G_10 = rt(n_rows, 10),
+    G_100 = rt(n_rows, 100),
+    G_1000 = rt(n_rows, 1000)
+)
 print(dim(g))
 print(head(g))
-```
 ```
 
 ## Plot
@@ -49,31 +50,45 @@ Tipp: Platzieren Sie die sechs Plots auf einem $3 \times 2$-Gitter.
 library(ggplot2)
 library(gridExtra)
 
-normal_dist = data.frame(normal=rnorm(n_rows, 0, 1 ))
+normal_dist <- data.frame(normal = rnorm(n_rows, 0, 1))
 
 print(dim(normal))
-alpha = 0.5
+alpha <- 0.5
 
-plots = list()
+plots <- list()
 for (i in 1:6) {
-    plots[[i]] = ggplot(g) + geom_histogram(aes(x = g[,i]), binwidth = 0.25, alpha=alpha) + xlim(-5, 5) +
-        geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
+    plots[[i]] <- ggplot(g) +
+        geom_histogram(aes(x = g[, i]), binwidth = 0.25, alpha = alpha) +
+        xlim(-5, 5) +
+        geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
 }
 grid.arrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], ncol = 3)
 
 
-p1 = ggplot(g) + geom_histogram(aes(x = G_1), binwidth = 0.25, alpha=alpha) + xlim(-5, 5)+ 
-   geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
-p2 = ggplot(g) + geom_histogram(aes(x = G_2), binwidth = 0.25, alpha=alpha) + xlim(-5, 5) +
-   geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
-p3 = ggplot(g) + geom_histogram(aes(x = G_3), binwidth = 0.25, alpha=alpha) + xlim(-5, 5) +
-    geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
-p4 = ggplot(g) + geom_histogram(aes(x = G_10), binwidth = 0.2, alpha=alpha) + xlim(-5, 5) +
-    geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
-p5 = ggplot(g) + geom_histogram(aes(x = G_100), binwidth = 0.25, alpha=alpha) + xlim(-5, 5) +
-    geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
-p6 = ggplot(g) + geom_histogram(aes(x = G_1000), binwidth = 0.25, alpha=alpha) + xlim(-5, 5) +
-    geom_histogram(data = normal_dist, aes(x = normal), binwidth=0.25, color = "red")
+p1 <- ggplot(g) +
+    geom_histogram(aes(x = G_1), binwidth = 0.25, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
+p2 <- ggplot(g) +
+    geom_histogram(aes(x = G_2), binwidth = 0.25, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
+p3 <- ggplot(g) +
+    geom_histogram(aes(x = G_3), binwidth = 0.25, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
+p4 <- ggplot(g) +
+    geom_histogram(aes(x = G_10), binwidth = 0.2, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
+p5 <- ggplot(g) +
+    geom_histogram(aes(x = G_100), binwidth = 0.25, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
+p6 <- ggplot(g) +
+    geom_histogram(aes(x = G_1000), binwidth = 0.25, alpha = alpha) +
+    xlim(-5, 5) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red")
 
 grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 3)
 ```
@@ -90,13 +105,13 @@ Tipp: `hist(plot = FALSE)` erzeugt ein Histogramm, ohne es zu plotten. Gerne kö
 
 ```{r}
 # Ihre Lösung:
-table = data.frame(n = c(1, 2, 3, 10, 100, 1000), mean_diff = c(0, 0, 0, 0, 0, 0))
+table <- data.frame(n = c(1, 2, 3, 10, 100, 1000), mean_diff = c(0, 0, 0, 0, 0, 0))
 for (i in 1:6) {
-    histogram = hist(g[,i], plot = FALSE, binwidth = 0.25)
-    histogram_normal = hist(normal_dist$normal, plot = FALSE, binwidth = 0.25)
-    sqr_diff = (histogram$counts - histogram_normal$counts)^2
-    mean_diff = sqrt(sum(sqr_diff)/length(sqr_diff))
-    table[i, 2] = mean_diff
+    histogram <- hist(g[, i], plot = FALSE, binwidth = 0.25)
+    histogram_normal <- hist(normal_dist$normal, plot = FALSE, binwidth = 0.25)
+    sqr_diff <- (histogram$counts - histogram_normal$counts)^2
+    mean_diff <- sqrt(sum(sqr_diff) / length(sqr_diff))
+    table[i, 2] <- mean_diff
 }
 print(table)
 # Die Abweichungen werden kleiner, je größer n ist.
