@@ -20,7 +20,6 @@ Es werden wieder die Herzdaten aus der letzten Aufgabe genutzt. Lesen Sie diese 
 
 ```{r}
 df = read.csv(url('https://oc.informatik.hs-mannheim.de/s/wyzFq34K9HiNjXR/download'))
-print(head(df[,], 3))
 ```
 
 ## Bedeutet "ähnliche Merkmale" auch "gleiche Diagnose"?
@@ -38,26 +37,26 @@ Clustern Sie diese Daten. Überlegen Sie, ob Sie die Daten standardisieren wolle
 ```{r}
 print(head(df[sapply(df, is.numeric)]))
 
-# intuitiv laut Aufgabenstellung:
-# numerische Merkmale: age, trestbps, chol, thalach, oldpeak
-# faktorielle Merkmale: sex, cp, fbs, restecg, exang, slope, thal, goal, ca
-# -> convert to factor???
+# numerische Merkmale: age, trestbps, chol, thalach, oldpeak, ca
+# faktorielle Merkmale: sex, cp, fbs, restecg, exang, slope, thal, goal
+# Merkmale initial nicht richtig zugeordnet -> umwandeln
 conv_to_factor = c("sex", "cp", "fbs", "restecg", "exang", "slope", "goal")
 df_clust = df %>% mutate_at(conv_to_factor, factor)
+df_clust$ca = as.numeric(as.factor(df_clust$ca))
 
-# add column for healthy/sick
-df_clust$healthy = df_clust$goal!=0
+# add df for healthy/sick (1= healtyh, 0=sick)
+healthy = df_clust$goal!=0
 
 # select numerical values
 df_nums = df_clust %>% select_if(is.numeric)
-print(head(df_nums))
 
-# scale data (features have different scales -> features have different influence on distance calculation)
+# scale data (features have different scales 
+# -> features have different influence on distance calculation)
 df_nums = data.frame(scale(df_nums))
 
-# clustering
+# clustering, nstart is the number of random initial cluster centers
 set.seed(42)
-km_res = kmeans(df_nums, centers=2, nstart=25)
+km_res = kmeans(df_nums, centers=2, nstart=10) 
 ```
 
 #### Richtig?
@@ -67,12 +66,22 @@ Berechnen Sie, wie viel Prozent der Datensätze richtig einem Cluster eingeordne
 Hinweis: Berücksichtigen Sie, dass die Vergabe der Clusternummern zufällig ist. D.h. sowohl die Cluster (1, 2) wie auch (2, 1) sind möglich.
 
 ```{r}
-# -> wie finde ich heraus welcher cluster jetzt gesund und welcher krank ist?
-km_healthy = sapply(km_res$cluster, function(X) X==1)
+cluster1 = sapply(km_res$cluster, function(X) X==1)
+cluster2 = sapply(km_res$cluster, function(X) X==2)
 
-matching_percentage = mean(km_healthy == real_healthy) * 100
-matching_percentage = round(matching_percentage, digits=2)
-print(paste(matching_percentage, "% der Datensätze wurden richtig einem Cluster zugeordnet"))
+perc_cluster1 = round(mean(cluster1 == healthy) * 100, digits = 2)
+perc_cluster2 = round(mean(cluster2 == healthy) * 100, digits = 2)
+
+# clusters have no semantic meaning (healthy/sick) -> choose cluster with higher correspondence
+if (perc_cluster1 > perc_cluster2) {
+    km_healthy = cluster1
+    max_perc = perc_cluster1
+} else {
+    km_healthy = cluster2
+    max_perc = perc_cluster2
+}
+
+print(paste(max_perc, "% der Datensätze wurden richtig einem Cluster zugeordnet"))
 ```
 
 #### Scatterplot age vs. thalach
@@ -80,12 +89,11 @@ print(paste(matching_percentage, "% der Datensätze wurden richtig einem Cluster
 Plotten Sie die Merkmale `age` und `thalach` als Scatterplot. Färben Sie die Punkte gemäß ihrer Clusterzuordnung ein. Die Form (`shape`) eines Punkts soll zeigen, ob die Klassifikation (d.h. der Cluster) richtig oder falsch ist.
 
 ```{r}
-df_clust$cluster = as.factor(km_res$cluster)
-df_clust$correct = km_healthy == real_healthy
+df_nums$cluster = as.factor(km_res$cluster)
+df_nums$correct = km_healthy == healthy
 
-ggplot(df_clust) + 
-    geom_point(aes(x=age, y=thalach, color=cluster, shape=correct), size=3) +
-    scale_color_discrete(drop = FALSE)
+ggplot(df_nums) + 
+    geom_point(aes(x=age, y=thalach, color=cluster, shape=correct), size=3) 
 ```
 
 
@@ -99,14 +107,13 @@ Clustern Sie diese Daten. Überlegen Sie, wie die Faktoren zu Zahlen werden.
 
 ```{r}
 # convert factors to numeric
-# print(sapply(df_clust, is.numeric))
-df_clust = df_clust %>% mutate_if(function(x) !is.numeric(x), function(y) as.numeric(as.factor(y)))
+df_dummy = df %>% mutate_if(function(x) !is.numeric(x), function(y) as.numeric(as.factor(y)))
 
 # scale data 
-df_clust = data.frame(scale(df_clust))
+df_dummy = data.frame(scale(df_dummy))
 
 # clustering
-km_res = kmeans(df_clust, centers=2, nstart=25)
+km_res = kmeans(df_dummy, centers=2, nstart=10)
 ```
 
 #### Richtig?
@@ -114,11 +121,21 @@ km_res = kmeans(df_clust, centers=2, nstart=25)
 Berechnen Sie für diesen Fall, wie viel Prozent der Datensätze richtig einem Cluster eingeordnet wurden und geben Sie die Zahl auf zwei Nachkommastellen gerundet aus. Wie hat sich der Wert verändert? Warum ist dies so?
 
 ```{r}
-km_healthy = sapply(km_res$cluster, function(X) X==1)    # wie wähle ich 1 oder 2???
+cluster1 = sapply(km_res$cluster, function(X) X==1)
+cluster2 = sapply(km_res$cluster, function(X) X==2)
 
-matching_percentage = mean(km_healthy == real_healthy) * 100
-matching_percentage = round(matching_percentage, digits=2)
-print(paste(matching_percentage, "% der Datensätze wurden richtig einem Cluster zugeordnet"))
+perc_cluster1 = round(mean(cluster1 == healthy) * 100, digits = 2)
+perc_cluster2 = round(mean(cluster2 == healthy) * 100, digits = 2)
+
+if (perc_cluster1 > perc_cluster2) {
+    km_healthy = cluster1
+    max_perc = perc_cluster1
+} else {
+    km_healthy = cluster2
+    max_perc = perc_cluster2
+}
+
+print(paste(max_perc, "% der Datensätze wurden richtig einem Cluster zugeordnet"))
 ```
 
 #### Scatterplot age vs. thalach
@@ -126,10 +143,10 @@ print(paste(matching_percentage, "% der Datensätze wurden richtig einem Cluster
 Plotten Sie erneut und schauen Sie, wie die richtigen nun Punkte verteilt sind.
 
 ```{r}
-df_clust$cluster = as.factor(km_res$cluster)
-df_clust$correct = km_healthy == real_healthy
+df_dummy$cluster = as.factor(km_res$cluster)
+df_dummy$correct = km_healthy == healthy
 
-ggplot(df_clust) + 
+ggplot(df_dummy) + 
     geom_point(aes(x=age, y=thalach, color=cluster, shape=correct), size=3) +
     scale_color_discrete(drop = FALSE)
 ```
@@ -143,30 +160,19 @@ Wenden Sie eine PCA auf diesen Datensatz an. Es sollen alle Merkmale berücksich
 Welche Merkmale der ersten Hauptkomponente tragen am meisten zur Varianz bei? Geben Sie die TOP-10-Merkmale an.
 
 ```{r}
-# gutes Tutorial: https://www.datacamp.com/tutorial/pca-analysis-r
-
-# pca only works with numerical values
-# ist es besser die faktoriellen werte umzuwandeln oder zu löschen???
-#df_pca = df %>% mutate_if(function(x) !is.numeric(x), function(y) as.numeric(as.factor(y)))
-conv_to_factor = c("sex", "cp", "fbs", "restecg", "exang", "slope", "goal")
-df_pca = df %>% 
-        #mutate_at(conv_to_factor, factor) %>% ??
-        select_if(is.numeric)
-#df_pca = data.frame(scale(df_clust))
-
-# # calculate and plot correlation matrix
-# corr_matrix = cor(df_pca)
-# ggcorrplot(corr_matrix)
+# pca only works with numerical values -> all features should be considered 
+# -> convert to numeric values
+df_pca = df %>% mutate_if(function(x) !is.numeric(x), function(y) as.numeric(as.factor(y)))
 
 # apply pca
 pca_res = prcomp(df_pca, scale=TRUE)
-summary(pca_res)
 
 # positive values: positive correlation
 # negative values: negative correlation
-# -> the higher the absolute value, the more it contributes to the variance
 pc1 = pca_res$rotation
 first_comp = data.frame(pca_res$rotation[, 1])
+
+# the higher the absolute value, the more it contributes to the variance
 first_comp_desc = abs(first_comp) %>% arrange(desc(pca_res.rotation...1.))
 head(first_comp_desc,10)
 ```
@@ -176,7 +182,7 @@ head(first_comp_desc,10)
 Plotten Sie die erste und zweite Hauptkomponente als Scatterplot. Färben Sie die Punkte gemäß ihrer Klasse (Disease) ein.
 
 ```{r}
-autoplot(pca, data=df_pca, color="goal")
+autoplot(pca_res, data=df_pca, color="goal")
 ```
 
 ### PVE
@@ -186,12 +192,10 @@ autoplot(pca, data=df_pca, color="goal")
 Plotten Sie die Proportion of Variance explained (PVE) für jede Hauptkomponente sowie die akkumulierte PVE.
 
 ```{r echo=F}
-# was ist der unterschied zwischen pve und einem 'scree plot'?
 pve = pca_res$sdev^2 / sum(pca_res$sdev^2)
 
 df_pve = data.frame(pve)
 df_pve$pc = seq_along(pve)
-#df_pve = df_pve %>% rename(pc = c.1.length.pve...pve.)
 
 ggplot(df_pve) +
     geom_bar(aes(x=pc, y=pve), stat='identity') +
@@ -201,11 +205,9 @@ ggplot(df_pve) +
 ```
 
 ```{r echo=F}
-# was ist der unterschied zwischen pve und einem 'scree plot'?
 cum_pve = cumsum(pve)
 df_pve_cum = data.frame(cum_pve)
 df_pve_cum$pc = seq_along(cum_pve)
-#df_pve_cum = df_pve_cum %>% rename(pc = c.1.length.cum_pve...cum_pve.)
 
 ggplot(df_pve_cum) +
     geom_bar(aes(x=pc, y=cum_pve), stat='identity') +
@@ -221,12 +223,13 @@ Wie viele Hauptkomponenten erklären mehr als 50% der Varianz?
 Möglicherweise tragen bei Ihrem Ergebnis die letzten Hauptkomponenten keine Varianz mehr bei. Überlegen Sie, woran das liegen könnte.
 
 ```{r echo=F}
-fviz_eig(pca_res, addlabels = TRUE)
 summary(pca_res)
 ```
 
-Hier erklären 4 Hauptkomponenten mehr als 50% der Varianz. Die letzten Hauptkomponenten tragen noch zur Varianz bei,
-allerdings nur sehr wenig. Dies könnte daran liegen, dass die wichtigsten Informationen bereits von den ersten
-Hauptkomponenten erfasst werden. 
+Hier erklären 4 Hauptkomponenten mehr als 50% der Varianz (siehe Zeile "Cumulative Proportion"). 
+Die letzten Hauptkomponenten tragen noch zur Varianz bei, allerdings nur sehr wenig. 
+In der PCA werden die Hauptkomponenten so angeordnet, dass die erste die höchste Varianz im Datensatz erklärt, die
+zweite die zweithöchste, usw. Die späteren Hauptkomponenten erklären sukzessive immer weniger Varianz im Vergleich zu den vorherigen.
 
--> kp wie man das genau erklärt
+Auf Datensätze bezogen gibt es oft Muster und Strukturen, die von einigen dominanten Merkmalen bzw. Hauptkomponenten gut erklärt
+werden können. Die letzten Hauptkomponenten repräsentieren feinere Details, die somit weniger Varianz erklären.
