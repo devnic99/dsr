@@ -1,0 +1,152 @@
+---
+title: "Unüberwachtes Lernen mit dem Herz-Datensatz"
+output: html_document
+---
+
+```{r echo = F, warning = F, message = F}
+# Laden Sie benötigte Libraries...
+library(ggplot2)
+library(tidyverse)
+library(knitr)
+```
+
+# Clustering und PCA auf die Herzdaten
+
+## Einlesen der Herz-Daten
+
+Es werden wieder die Herzdaten aus der letzten Aufgabe genutzt. Lesen Sie diese als Data Frame ein.
+
+```{r}
+# Ihre Lösung:
+herz = read.csv(url("https://oc.informatik.hs-mannheim.de/s/wyzFq34K9HiNjXR/download"))
+herz$sex = factor(herz$sex, levels = c(0, 1), labels = c("f", "m"))
+herz$goal = factor(herz$goal, levels = c(0, 1, 2, 3, 4), labels = c("gesund", "krank", "krank", "krank", "krank"))
+
+```
+
+## Bedeutet "ähnliche Merkmale" auch "gleiche Diagnose"?
+
+Für jeden Datensatz ist bekannt, zu welcher Klasse er gehört: 0 (gesund) und 1 (erkrankt). Wir wollen untersuchen, wie gut _ähnliche_ Datensätze zur gleichen Klasse gehören. Dafür soll mit dem $k$-means-Clusterverfahren der Datensatz in zwei Cluster eingeteilt werden.
+
+### Nur reelle Merkmale
+
+Zunächst sollen **nur die nummerischen Merkmale** benutzt werden und nicht jene, die Faktoren sind.
+
+#### Clustering
+
+Clustern Sie diese Daten. Überlegen Sie, ob Sie die Daten standardisieren wollen.
+
+```{r}
+# Ihre Lösung:
+nummerische_merkmale = herz2 |>  
+  select_if(is.numeric) |> # nur nummerisch
+  scale() #standardisiert
+set.seed(42)
+kmeans_result = kmeans(nummerische_merkmale, centers = 2, nstart = 25)
+print(kmeans_result)
+```
+
+#### Richtig?
+
+Berechnen Sie, wie viel Prozent der Datensätze richtig einem Cluster eingeordnet wurden und geben Sie die Zahl auf zwei Nachkommastellen gerundet aus.
+
+Hinweis: Berücksichtigen Sie, dass die Vergabe der Clusternummern zufällig ist. D.h. sowohl die Cluster (1, 2) wie auch (2, 1) sind möglich.
+
+```{r}
+# Ihre Lösung:
+korrekte_zuordnungen = sum(herz2$goal == ifelse(kmeans_result$cluster[1] == 1, 0, 1)) # 2mal vergleichen
+prozentsatz_korrekte_zuordnungen = round(((korrekte_zuordnungen / nrow(herz2)) * 100), 2)
+print(prozentsatz_korrekte_zuordnungen)
+```
+
+#### Scatterplot age vs. thalach
+
+Plotten Sie die Merkmale `age` und `thalach` als Scatterplot. Färben Sie die Punkte gemäß ihrer Clusterzuordnung ein. Die Form (`shape`) eines Punkts soll zeigen, ob die Klassifikation (d.h. der Cluster) richtig oder falsch ist.
+
+```{r}
+# Ihre Lösung:
+# Scatterplot age vs. thalach
+herz_cluster = herz2 |>
+  mutate(Cluster = kmeans_result$cluster) # Cluster-Information
+herz_klassifikation <- herz_cluster %>%
+  mutate(Korrekt = ifelse(Cluster == 1 & goal == 0 | Cluster == 2 & goal == 1, "Richtig", "Falsch")) # Klassifikationen
+
+scatterplot = ggplot(herz_klassifikation, aes(x = age, y = thalach, color = as.factor(Cluster), shape = Korrekt)) +
+  geom_point() +
+  scale_color_manual(values = c("red", "blue")) +  
+  scale_shape_manual(values = c("Richtig" = 16, "Falsch" = 17)) +  # Formen für Klassifikation
+  labs(title = "Scatterplot age vs. thalach ",
+       x = "Alter (age)",
+       y = "Maximale Herzfrequenz (thalach)") +
+  theme_minimal()
+
+print(scatterplot)
+```
+
+
+### Mit Dummy-Variablen
+
+Nun sollen **alle Merkmale** benutzt werden.
+
+#### Clustering
+
+Clustern Sie diese Daten. Überlegen Sie, wie die Faktoren zu Zahlen werden.
+
+```{r}
+# Ihre Lösung:
+```
+
+#### Richtig?
+
+Berechnen Sie für diesen Fall, wie viel Prozent der Datensätze richtig einem Cluster eingeordnet wurden und geben Sie die Zahl auf zwei Nachkommastellen gerundet aus. Wie hat sich der Wert verändert? Warum ist dies so?
+
+```{r}
+# Ihre Lösung:
+```
+
+#### Scatterplot age vs. thalach
+
+Plotten Sie erneut und schauen Sie, wie die richtigen nun Punkte verteilt sind.
+
+```{r}
+# Ihre Lösung:
+```
+
+## PCA
+
+Wenden Sie eine PCA auf diesen Datensatz an. Es sollen alle Merkmale berücksichtigt werden.
+
+### Wichtige Merkmale
+
+Welche Merkmale der ersten Hauptkomponente tragen am meisten zur Varianz bei? Geben Sie die TOP-10-Merkmale an.
+
+```{r}
+# Ihre Lösung:
+```
+
+### Erste und zweite Hauptkomponente
+
+Plotten Sie die erste und zweite Hauptkomponente als Scatterplot. Färben Sie die Punkte gemäß ihrer Klasse (Disease) ein.
+
+```{r}
+# Ihre Lösung:
+```
+
+### PVE
+
+#### Plot
+
+Plotten Sie die Proportion of Variance explained (PVE) für jede Hauptkomponente sowie die akkumulierte PVE.
+
+```{r echo=F}
+# Ihre Lösung
+```
+
+#### Wichtige Hauptkomponenten
+
+Wie viele Hauptkomponenten erklären mehr als 50% der Varianz?
+
+
+Möglicherweise tragen bei Ihrem Ergebnis die letzten Hauptkomponenten keine Varianz mehr bei. Überlegen Sie, woran das liegen könnte.
+
+
