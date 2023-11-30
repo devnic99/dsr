@@ -8,6 +8,7 @@ output: html_document
 library(ggplot2)
 library(tidyverse)
 library(knitr)
+library(purrr)
 ```
 
 # Clustering und PCA auf die Herzdaten
@@ -18,7 +19,9 @@ Es werden wieder die Herzdaten aus der letzten Aufgabe genutzt. Lesen Sie diese 
 
 ```{r}
 # Ihre Lösung:
-herz = read.csv(url("https://oc.informatik.hs-mannheim.de/s/wyzFq34K9HiNjXR/download")) |> mutate(across(c("sex", "cp","fbs", "restecg", "exang", "slope", "goal"),as.factor))
+herz = read.csv(url("https://oc.informatik.hs-mannheim.de/s/wyzFq34K9HiNjXR/download")) |> mutate(across(c("sex", "cp","fbs", "restecg", "exang", "slope","thal"),as.factor))
+herz$ca = as.numeric(as.factor(herz$ca))
+herz$goal = factor(herz$goal, levels = c(0, 1, 2, 3, 4), labels = c("gesund", "krank", "krank", "krank", "krank"))
 
 ```
 
@@ -38,7 +41,8 @@ Clustern Sie diese Daten. Überlegen Sie, ob Sie die Daten standardisieren wolle
 # Ihre Lösung:
 nummerische_merkmale = herz |>  
   select_if(is.numeric) |> # nur nummerisch
-  scale() #standardisiert
+  scale() |>
+  as.data.frame()#standardisiert 
 set.seed(42)
 kmeans_result = kmeans(nummerische_merkmale, centers = 2, nstart = 25)
 print(kmeans_result)
@@ -52,9 +56,23 @@ Hinweis: Berücksichtigen Sie, dass die Vergabe der Clusternummern zufällig ist
 
 ```{r}
 # Ihre Lösung:
-korrekte_zuordnungen = sum(herz$goal == ifelse(kmeans_result$cluster[1] == 1, 0, 1)) # 2mal vergleichen
-prozentsatz_korrekte_zuordnungen = round(((korrekte_zuordnungen / nrow(herz)) * 100), 2)
-print(prozentsatz_korrekte_zuordnungen)
+cluster1 = kmeans_result$cluster |> 
+  sapply(function(X) X == 1)
+cluster2 = kmeans_result$cluster |> 
+  sapply( function(X) X == 2)
+prozentsatz_cluster1 = round(mean(cluster1 == (herz$goal == "gesund")) * 100, digits = 2)
+prozentsatz_cluster2 = round(mean(cluster2 == (herz$goal == "gesund")) * 100, digits = 2)
+
+#überprüfen welches Cluster größer ist
+
+if (prozentsatz_cluster1 > prozentsatz_cluster2) {
+    korrekte_zuordnungen = cluster1
+    prozentsatz_korrekte_zuordnungen = prozentsatz_cluster1
+} else {
+    korrekte_zuordnungen = cluster2
+    prozentsatz_korrekte_zuordnungen = prozentsatz_cluster2
+}
+print(paste(prozentsatz_korrekte_zuordnungen, "% wurden richtig zugeordnet"))
 ```
 
 #### Scatterplot age vs. thalach
@@ -64,15 +82,12 @@ Plotten Sie die Merkmale `age` und `thalach` als Scatterplot. Färben Sie die Pu
 ```{r}
 # Ihre Lösung:
 # Scatterplot age vs. thalach
-herz_cluster = herz |>
-  mutate(Cluster = kmeans_result$cluster) # Cluster-Information
-herz_klassifikation <- herz_cluster %>%
-  mutate(Korrekt = ifelse(Cluster == 1 & goal == 0 | Cluster == 2 & goal == 1, "Richtig", "Falsch")) # Klassifikationen
+nummerische_merkmale$cluster = as.factor(kmeans_result$cluster) 
+nummerische_merkmale$klassifikation = korrekte_zuordnungen == (herz$goal == "gesund")
 
-scatterplot = ggplot(herz_klassifikation, aes(x = age, y = thalach, color = as.factor(Cluster), shape = Korrekt)) +
-  geom_point() +
-  scale_color_manual(values = c("red", "blue")) +  
-  scale_shape_manual(values = c("Richtig" = 16, "Falsch" = 17)) +  # Formen für Klassifikation
+
+scatterplot = ggplot(nummerische_merkmale) +
+  geom_point( aes(x = age, y = thalach, color = cluster, shape = klassifikation)) +
   labs(title = "Scatterplot age vs. thalach ",
        x = "Alter (age)",
        y = "Maximale Herzfrequenz (thalach)") +
@@ -92,6 +107,14 @@ Clustern Sie diese Daten. Überlegen Sie, wie die Faktoren zu Zahlen werden.
 
 ```{r}
 # Ihre Lösung:
+herz_dummy = herz |> 
+  mutate_if(function(x) !is.numeric(x), function(y) as.numeric(as.factor(y))) |>
+  scale()
+herz_dummy = as.data.frame(herz_dummy)
+
+
+kmeans_result_dummy = kmeans(herz_dummy, centers = 2, nstart = 25)
+
 ```
 
 #### Richtig?
@@ -100,6 +123,24 @@ Berechnen Sie für diesen Fall, wie viel Prozent der Datensätze richtig einem C
 
 ```{r}
 # Ihre Lösung:
+cluster3 = kmeans_result_dummy$cluster |> 
+  sapply(function(X) X == 1)
+cluster4 = kmeans_result_dummy$cluster |> 
+  sapply( function(X) X == 2)
+prozentsatz_cluster3 = round(mean(cluster3 == (herz$goal == "gesund")) * 100, digits = 2)
+prozentsatz_cluster4 = round(mean(cluster4 == (herz$goal == "gesund")) * 100, digits = 2)
+
+#überprüfen welches Cluster größer ist
+
+if (prozentsatz_cluster3 > prozentsatz_cluster4) {
+    korrekte_zuordnungen_dummy = cluster3
+    prozentsatz_korrekte_zuordnungen_dummy = prozentsatz_cluster3
+} else {
+    korrekte_zuordnungen_dummy = cluster4
+    prozentsatz_korrekte_zuordnungen_dummy = prozentsatz_cluster4
+}
+print(paste(prozentsatz_korrekte_zuordnungen_dummy, "% wurden richtig zugeordnet"))
+
 ```
 
 #### Scatterplot age vs. thalach
@@ -108,6 +149,19 @@ Plotten Sie erneut und schauen Sie, wie die richtigen nun Punkte verteilt sind.
 
 ```{r}
 # Ihre Lösung:
+herz_dummy$cluster = as.factor(kmeans_result_dummy$cluster) 
+herz_dummy$klassifikation = korrekte_zuordnungen_dummy == (herz$goal == "gesund")
+
+
+scatterplot = ggplot(herz_dummy) +
+  geom_point( aes(x = age, y = thalach, color = cluster, shape = klassifikation)) +
+  labs(title = "Scatterplot age vs. thalach ",
+       x = "Alter (age)",
+       y = "Maximale Herzfrequenz (thalach)") +
+  theme_minimal()
+
+print(scatterplot)
+
 ```
 
 ## PCA
@@ -120,6 +174,16 @@ Welche Merkmale der ersten Hauptkomponente tragen am meisten zur Varianz bei? Ge
 
 ```{r}
 # Ihre Lösung:
+herz_pca = herz_dummy |> 
+  mutate(across(where(is.numeric), scale))
+
+pca = prcomp(select(herz_pca, where(is.numeric)), center = TRUE, scale. = TRUE)
+top_10 = pca$rotation[ , 1] |>
+  abs() 
+  
+top_10 = head(sort(top_10, decreasing = TRUE), 10)
+
+print(top_10)
 ```
 
 ### Erste und zweite Hauptkomponente
@@ -128,6 +192,15 @@ Plotten Sie die erste und zweite Hauptkomponente als Scatterplot. Färben Sie di
 
 ```{r}
 # Ihre Lösung:
+scatter_pca = as.data.frame(pca$x[, 1:2])
+scatter_pca$disease = factor(herz$goal)
+ggplot(scatter_pca, aes(PC1, PC2, color = disease)) +
+  geom_point() +
+  labs(title = "Scatterplot der ersten und zweiten Hauptkomponente",
+       x = "PC1",
+       y = "PC2")
+
+
 ```
 
 ### PVE
@@ -136,8 +209,28 @@ Plotten Sie die erste und zweite Hauptkomponente als Scatterplot. Färben Sie di
 
 Plotten Sie die Proportion of Variance explained (PVE) für jede Hauptkomponente sowie die akkumulierte PVE.
 
-```{r echo=F}
+```{r}
 # Ihre Lösung
+pve = (pca$sdev^2) / sum(pca$sdev^2)
+pve_daten = data.frame(
+  PC = seq_along(pve),
+  PVE = pve,
+  akk_PVE = cumsum(pve)
+)
+
+ggplot(pve_daten) +
+  geom_bar(aes(x = PC, y = PVE), stat = "identity") +
+  labs(title = "Proportion of Variance Explained (PVE)",
+       x = "Hauptkomponenten",
+       y = "PVE")
+
+ggplot(pve_daten, aes(x = PC)) +
+  geom_bar(aes( x = PC, y = akk_PVE ), stat = "identity") + 
+  labs(title = "Proportion of Variance Explained (PVE)",
+       x = "Hauptkomponenten",
+       y = "Akkumulierte PVE") 
+  
+
 ```
 
 #### Wichtige Hauptkomponenten
@@ -146,5 +239,8 @@ Wie viele Hauptkomponenten erklären mehr als 50% der Varianz?
 
 
 Möglicherweise tragen bei Ihrem Ergebnis die letzten Hauptkomponenten keine Varianz mehr bei. Überlegen Sie, woran das liegen könnte.
+
+
+
 
 
