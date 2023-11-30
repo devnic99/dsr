@@ -53,7 +53,7 @@ Hinweis: Berücksichtigen Sie, dass die Vergabe der Clusternummern zufällig ist
 ```{r}
 # Ihre Lösung:
 korrekte_zuordnungen = sum(herz$goal == ifelse(kmeans_result$cluster[1] == 1, 0, 1)) # 2mal vergleichen
-prozentsatz_korrekte_zuordnungen = round(((korrekte_zuordnungen / nrow(herz2)) * 100), 2)
+prozentsatz_korrekte_zuordnungen = round(((korrekte_zuordnungen / nrow(herz)) * 100), 2)
 print(prozentsatz_korrekte_zuordnungen)
 ```
 
