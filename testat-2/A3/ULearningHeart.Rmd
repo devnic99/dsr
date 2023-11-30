@@ -19,8 +19,8 @@ Es werden wieder die Herzdaten aus der letzten Aufgabe genutzt. Lesen Sie diese 
 data = read.csv(url('https://oc.informatik.hs-mannheim.de/s/wyzFq34K9HiNjXR/download'))
 
 data$sex = factor(data$sex, levels = c(0, 1), labels = c('f', 'm'))
-data$goal = factor(data$goal, levels = c(0, 1, 2, 3, 4), labels = c('gesund', 'krank', 'krank', 'krank', 'krank'))
-data[1:3, 1:5]
+data$goal = factor(data$goal, levels = c(0, 1, 2, 3, 4), labels = c('gesund', 'krank', 'krank', 'krank', 'krank')) # 0 = gesund, 1-4 = krank
+data[1:3, 1:5] # Ausgabe der ersten 3 Zeilen und 5 Spalten
 ```
 
 ## Bedeutet "ähnliche Merkmale" auch "gleiche Diagnose"?
