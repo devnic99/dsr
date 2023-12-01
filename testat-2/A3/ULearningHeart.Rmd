@@ -1,6 +1,8 @@
 ---
 title: "Unüberwachtes Lernen mit dem Herz-Datensatz"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r echo = F, warning = F, message = F}
@@ -8,7 +10,6 @@ library(dplyr)
 library(ggplot2)
 library(ggcorrplot)
 library(ggfortify)
-library(FactoMineR)
 library(factoextra)
 ```
 

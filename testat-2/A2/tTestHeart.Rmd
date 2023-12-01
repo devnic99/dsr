@@ -1,11 +1,14 @@
 ---
 title: "Untersuchungen zur koronaren Herzkrankheit (t-tests)"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r echo = F, warning = F, message = F}
 library(knitr)
-# Laden Sie benötigte Libraries...
+library(ggplot2)
+library(dplyr)
 ```
 # Untersuchungen zur koronaren Herzkrankheit
 
