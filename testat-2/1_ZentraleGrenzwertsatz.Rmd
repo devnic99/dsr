@@ -1,0 +1,135 @@
+---
+title: "Zentrale Grenzwertsatz"
+output: html_notebook
+---
+
+# Zentrale Grenzwertsatz
+
+Für jedes $n=1,2,\ldots$ seien die Zufallsvariablen $X_1, X_2, \ldots, X_n$ unabhängig und besitzen die gleiche Verteilung mit dem Erwartungswert $\mu = E(X_i)$ und der Varianz $\sigma^2=Var(X_i)=$. Dann gilt für die Verteilungsfunktion der standardisierten Summen $G_n = \frac{\sum_{i=1}^{n}X_{i}-n\mu}{\sqrt{n}\sigma}$:
+$$
+\lim_{n\rightarrow\infty}P\left(G_n \leq x\right)=\Phi(x)
+$$
+Dabei ist $\Phi$ die Verteilungsfunktion der Standard-Normalverteilung $N(0,1)$.
+
+Überprüfen Sie mit R den zentralen Grenzwertsatz.
+
+## Verteilung
+
+Erzeugen Sie einen Data Frame, der die gezogenen Zufallszahlen $G_n$ enthält. Die Stichprobe soll einen Umfang von 50000 haben (Anzahl Zeilen der Tabelle). Der Data Frame hat sechs Spalten, die die Werte für die Zahlen $n=1, 2, 3, 10, 100, 1000$ enthalten. Geben Sie die ersten 10 Zeilen des Data Frames aus.
+
+Welche Verteilung Sie für $X_i$ nehmen, bleibt Ihnen überlassen. Es soll nur keine Normalverteilung sein.
+
+
+```{r}
+# Ihre Lösung:
+# G_n: Umfang der Stichprobe
+# n: Anzahl der Zufallszahlen
+library(dplyr)
+
+n_samples = 50000
+
+g = data.frame(
+    G_1 = rt(n_samples, 1),
+    G_2 = rt(n_samples, 2),
+    G_3 = rt(n_samples, 3),
+    G_10 = rt(n_samples, 10),
+    G_100 = rt(n_samples, 100),
+    G_1000 = rt(n_samples, 1000)
+)
+
+# # Daten standardisieren
+# for (col in colnames(gn)) {
+#     mean_t = mean(gn$col)
+#     sd_t = sd(gn$col)
+#     standardized_t = (gn$col - mean_t) / sd_t
+#     print(standardized_t)
+# }
+
+# print(max(gn_df[,1]))
+
+print(dim(g))
+print(head(g))
+```
+
+## Plot
+
+Plotten Sie sechs Histogramme, die je für $n=1, 2, 3, 10, 100, 1000$ die Verteilung im Vergleich zu einer ($0,1$)-Normalverteilung zeigen. Die Intervallbreite soll 0,25 sein.
+
+Tipp: Platzieren Sie die sechs Plots auf einem $3 \times 2$-Gitter.
+
+```{r}
+# Ihre Lösung:
+library(ggplot2)
+library(gridExtra)
+library(grid)
+
+normal_dist = data.frame(normal = rnorm(n_rows, 0, 1)) # Normalverteilung mit 50000 Zufallszahlen
+alpha_t = 0.6
+
+p1 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_1), binwidth = 0.25, alpha = alpha_t) +
+    xlim(-5, 5) + 
+    labs(title = "n = 1", x = "T-score", y = "count")
+
+p2 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_2), binwidth = 0.25, alpha = alpha_t) +
+    xlim(-5, 5) +
+    labs(title = "n = 2", x = "T-score", y = "count")
+
+p3 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_3), binwidth = 0.25, alpha = alpha_t) +
+    xlim(-5, 5) +
+    labs(title = "n = 3", x = "T-score", y = "count")
+
+p4 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_10), binwidth = 0.2, alpha = alpha_t) +
+    xlim(-5, 5) +
+    labs(title = "n = 10", x = "T-score", y = "count")
+
+p5 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_100), binwidth = 0.25, alpha = alpha_t) +
+    xlim(-5, 5) +
+    labs(title = "n = 100", x = "T-score", y = "count")
+
+p6 = ggplot(g) +
+    geom_histogram(data = normal_dist, aes(x = normal), binwidth = 0.25, color = "red", fill="transparent") +
+    geom_histogram(aes(x = G_1000), binwidth = 0.25, alpha = alpha_t) +
+    xlim(-5, 5) +
+    labs(title = "n = 1000", x = "T-score", y = "count")
+
+grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 3, top=textGrob("Histogramme der Standardnormalverteilung (rot) und t-Verteilung (grau)", gp = gpar(fontsize = 13, fontface = 'bold')))
+```
+
+## Abweichung
+
+Nun soll die Abweichung der Standardisierten $G$ von der Normalverteilung für alle $n$ quantifiziert werden. Hierzu soll für alle Balken (bins) der Histogramme aus der vorigen Aufgabe die Differenz von $G$ zur Normalverteilung gebildet und quadriert werden. Diese Werte werden aufaddiert und durch die Anzahl der Intervalle geteilt. Daraus wird die Wurzel gezogen.
+
+Sie können sich auch ein anderes Maß zur Bestimmung der Abweichung überlegen.
+
+Geben Sie die Abweichungen aus. Stimmt es, dass die Abweichungen mit größerem $n$ kleiner werden?
+
+Tipp: `hist(plot = FALSE)` erzeugt ein Histogramm, ohne es zu plotten. Gerne können Sie auch Ihr eigenes Histogramm nutzen.
+
+```{r}
+# Ihre Lösung:
+library(knitr)
+
+table = data.frame(n = c(1, 2, 3, 10, 100, 1000), mean_diff = c(0, 0, 0, 0, 0, 0))
+for (i in 1:6) { # vergleich von jedem n mit Normalverteilung pro Bin
+    histogram = hist(g[, i], plot = FALSE, binwidth = 0.25)
+    histogram_normal <- hist(normal_dist$normal, plot = FALSE, binwidth = 0.25)
+    sqr_diff = (histogram$counts - histogram_normal$counts)^2
+    mean_diff = sqrt(sum(sqr_diff) / length(sqr_diff))
+    table[i, 2] = mean_diff
+}
+print(kable(table))
+# Die Abweichungen werden kleiner, je größer n ist.
+```
+```
+
+
