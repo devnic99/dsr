@@ -37,16 +37,6 @@ g = data.frame(
     G_1000 = rt(n_samples, 1000)
 )
 
-# # Daten standardisieren
-# for (col in colnames(gn)) {
-#     mean_t = mean(gn$col)
-#     sd_t = sd(gn$col)
-#     standardized_t = (gn$col - mean_t) / sd_t
-#     print(standardized_t)
-# }
-
-# print(max(gn_df[,1]))
-
 print(dim(g))
 print(head(g))
 ```
