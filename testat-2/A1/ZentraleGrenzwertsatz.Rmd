@@ -101,7 +101,7 @@ library(knitr)
 table = data.frame(n = c(1, 2, 3, 10, 100, 1000), mean_diff = c(0, 0, 0, 0, 0, 0))
 for (i in 1:6) { # vergleich von jedem n mit Normalverteilung pro Bin
     histogram = hist(g[, i], plot = FALSE, binwidth = 0.25)
-    histogram_normal <- hist(normal_dist$normal, plot = FALSE, binwidth = 0.25)
+    histogram_normal = hist(normal_dist$normal, plot = FALSE, binwidth = 0.25)
     sqr_diff = (histogram$counts - histogram_normal$counts)^2
     mean_diff = sqrt(sum(sqr_diff) / length(sqr_diff))
     table[i, 2] = mean_diff
