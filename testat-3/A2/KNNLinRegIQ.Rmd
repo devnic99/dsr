@@ -22,12 +22,23 @@ Beschreiben Sie mit eigenen Worten (180 bis 220 Wörter), wie dieses Verfahren f
 (Ihre Lösung als Text hier)
 
 
+
+TODO:
+
+Das KNN Verfahren nutzt die Entfernung (meist eukl. Distanz) der Datenpunkte, k nächsten Nachbarn zu einem Zentrum zu bestimmen.
+....
+KNN ... Außerdem erfolgen Vorhersagen ohne komplexe Berechnungen, wodurch KNN sehr schnell durchzuführen ist.
+Jedoch ist dieses Verfahren nicht so gut für hochdimensionale Daten geeignet (curse of dimensionality)
+
 ## Daten importieren
 
 Laden Sie abermals den Datensatz unter https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download in einen Data Frame.
 
 ```{r}
 # Ihre Lösung:
+data <- readRDS(url("https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download"))
+data <- data.frame(data)
+head(data)
 ```
 
 ## KNN-Regression anwenden
