@@ -5,6 +5,9 @@ output: html_document
 
 ```{r echo = F, warning = F, message = F}
 # Laden Sie benötigte Libraries...
+install.packages("devtools")
+install.packages("roxygen2")
+devtools::create("smurf-package")
 ```
 
 # Package-Erstellung
