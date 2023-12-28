@@ -5,6 +5,7 @@ output: html_document
 
 ```{r echo = F, warning = F, message = F}
 # Laden Sie benötigte Libraries...
+library(caret)
 ```
 
 # Vorhersage des IQ mit KNN-Regression
@@ -26,9 +27,12 @@ Beschreiben Sie mit eigenen Worten (180 bis 220 Wörter), wie dieses Verfahren f
 TODO:
 
 Das KNN Verfahren nutzt die Entfernung (meist eukl. Distanz) der Datenpunkte, k nächsten Nachbarn zu einem Zentrum zu bestimmen.
-....
-KNN ... Außerdem erfolgen Vorhersagen ohne komplexe Berechnungen, wodurch KNN sehr schnell durchzuführen ist.
-Jedoch ist dieses Verfahren nicht so gut für hochdimensionale Daten geeignet (curse of dimensionality)
+Bei der Regression wird die Vorhersage auf Basis des Durschnitts der k neighbors durchgeführt. Bei der Klassifikation wird ein Datenpunkt per Mehrheitsentscheidung, basierend auf den k neighbors zu einer Klasse zugeordnet.
+Ein großer Vorteil von KNN liegt in der einfachen Implementierbarkeit und der guten Nachvollziehbarkeit
+
+KNN ist stark abhängig von k. Außerdem ist KNN anfällig für Verzerrung durch Ausreißer.
+Hinzu kommt, dass dieses Verfahren nicht so gut für hochdimensionale Daten geeignet (curse of dimensionality)
+Je nach größe der Daten, benötigt KNN einen hohen Speicherbedarf, da alle Trainingsbeispiele zum Vergleichen benötigt werde.
 
 ## Daten importieren
 
@@ -49,6 +53,8 @@ Wenden Sie für diesen Datensatz eine KNN-Regression an, um den IQ von Kindern i
 
 ```{r}
 # Ihre Lösung:
+pred <- knnreg(IQ.child ~ ., data = data[, 2:5])
+pred
 ```
 
 ### $k$?
@@ -64,6 +70,9 @@ Lassen Sie die $R^2$-Statistik berechnen. Wie sieht diese im Vergleich zur linea
 
 ```{r}
 # Ihre Lösung:
+s <- summary(pred)
+print(s)
+s$r.squared
 ```
 
 

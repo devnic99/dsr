@@ -25,7 +25,7 @@ Laden Sie die Daten unter https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5
 ```{r}
 # Ihre Lösung:
 data <- readRDS(url("https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download"))
-data = data.frame(data)
+data <- data.frame(data)
 head(data)
 ```
 
@@ -48,7 +48,7 @@ Wenden Sie für diesen Datensatz eine lineare Regression an, um den IQ von Kinde
 
 ```{r}
 # Ihre Lösung:
-lm.iq <- lm(IQ.child ~., data = data)
+lm.iq <- lm(IQ.child ~ ., data = data[, 2:5])
 s <- summary(lm.iq)
 s
 ```
@@ -60,6 +60,14 @@ Welche Merkmale spielen eine Rolle? Interpretieren Sie das Ergebnis.
 
 ```{r}
 # Ihre Lösung:
+r_squared <- function(x, y) cor(x, y)^2
+
+for (i in 2:4) {
+    r2 <- r_squared(data[, i], data[, 5])
+    print(paste0(colnames(data)[i], ": ", r2))
+}
+
+# Größte Rolle spielt der IQ der Mutter
 ```
 
 
@@ -69,6 +77,8 @@ Berechnen Sie den RSE. Was gibt dieser an?
 
 ```{r}
 # Ihre Lösung:
+rse <- s$sigma
+rse # gibt die Standardabweichung der Residuen an
 ```
 
 ### Anteil erklärter Varianz
@@ -87,6 +97,10 @@ Wandeln Sie den Datensatz so um, dass die Anzahl der Geschwister (`n.siblings`) 
 
 ```{r}
 # Ihre Lösung:
+data$n.siblings <- as.factor(data$n.siblings)
+lm.iq_factor <- lm(IQ.child ~ ., data = data[, 2:5])
+s_factor <- summary(lm.iq_factor)
+s_factor
 ```
 
 ### $R^2$
@@ -100,6 +114,19 @@ Abschließend soll mittels Cross-Validation überprüft werden, wie gut dieses V
 
 ```{r}
 # Ihre Lösung:
+kfcv <- trainControl(
+    method = "cv", # k-fold cross validation
+    number = 5, # n folds
+    returnResamp = "all"
+)
+
+class.fit <- train(IQ.child ~ .,
+    data = data[, 2:5],
+    method = "lm", # linear model
+    trControl = kfcv
+)
+r2 <- class.fit$results$Rsquared
+r2
 ```
 
 
