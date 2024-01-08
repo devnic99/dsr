@@ -1,0 +1,143 @@
+---
+title: "Lineare Regression (IQ)"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r echo = F, warning = F, message = F}
+library(caret)
+library(stats)
+```
+
+# Vorhersage des IQ mit linearer Regression
+
+In dieser Aufgabe soll mittels linearer Regression der Intelligenz-Quotient (IQ) von Kindern vorhergesagt werden.
+
+## Daten importieren und anschauen
+
+Laden Sie die Daten unter https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download in einen Data Frame. Die Daten sind im RDS-Format gespeichert. Der Datensatz stammt von Martin Brand (brandt@psychologie.uni-mannheim.de, https://www.sowi.uni-mannheim.de/kuhlmann/team/akademische-mitarbeiterinnen-und-mitarbeiter/brandt-martin/). Die Spalten bedeuten:
+
+ * `id`: Eindeutige Nummer
+ * `IQ.mother`: IQ der Mutter
+ * `IQ.father`: IQ des Vaters
+ * `n.siblings`: Anzahl der Geschwister
+ * `IQ.child`: IQ des Kindes
+
+```{r}
+data = readRDS(url("https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download", "rb"))
+```
+
+Verschaffen Sie sich einen ersten Überblick über die Daten. Plotten Sie dazu ein Mehrfach-Diagramm, das Scatterplots aller vier Variablen (drei Merkmale und Response `IQ.child`) untereinander zeigt. D.h. jede Variable soll mit jeder anderen paarweise verglichen werden.
+
+Tipp: Mit der `caret::featurePlot`-Funktion lässt sich das gut erreichen.
+
+```{r}
+featurePlot(x = data[, c("IQ.mother", "IQ.father", "n.siblings")],
+            y = data$IQ.child,
+            plot = "pairs")
+```
+
+## Lineare Regression
+
+Wenden Sie für diesen Datensatz eine lineare Regression an, um den IQ von Kindern in Abhängigkeit der Merkmale schätzen zu können. Die lineare Regression soll im Objekt `lm.iq` gespeichert werden.
+
+```{r}
+# erkläre IQ des Kindes durch IQ von Mutter, Vater und Anzahl der Geschwister
+lm.iq = lm(IQ.child ~ IQ.mother + IQ.father + n.siblings, data = data)
+```
+
+### Merkmale
+
+Welche Merkmale spielen eine Rolle? Interpretieren Sie das Ergebnis.
+
+```{r}
+summary(lm.iq)
+```
+Residuals: Zusammenfassung der Differenzen zwischen vorhergesagten und tatsächlichen Werten
+
+Koeffizienten:
+Intercept: IQ des Kindes, wenn alle Prädiktoren = 0
+Prädiktoren: für jede Einheitserhöhung der Variable wird abhängige Variable um x Einheiten erhöht (z. B. 0.53812)
+
+Signif. codes: Wie signifikant sind die einzelnen Koeffizienten? 
+0 also *** bedeutet hoch signifikant, kein Symbol bedeutet nicht signifikant
+
+Residual Standard Error: Durchschnittliche Abweichung der beobachteten Werte von vorhergesagten
+
+Multiple R-squared: Anteil der Variation in IQ.child, der durch unabhängige Variablen erklärt wird
+
+Adjusted R-squared: berücksichtigt Anzahl der verwendeten Prädikatoren (R-squared kann dazu neigen, zu steigen, je  mehr Prädiktoren zum Modell hinzugefügt werden)
+
+F-statistic: explained variance/unexplained variance -> bewertet statistische Signifikanz der Regression
+
+Interpretation:
+Betrachte die Signifikanz der Koeffizienten. Der IQ der Mutter und der IQ des Vaters sind mit *** gekennzeichnet, was darauf hinweist, dass diese Werte mit dem IQ des Kindes korrelieren. Bei Betrachtung des t- und Pr-Wertes, ist erkennbar, dass  t bei der Mutter höher ist als beim Vater und somit auch der Wert von Pr(>|t|) geringer. Das bedeutet, dass der IQ des Kindes mehr von dem IQ der Mutter abhängt, als von dem des Vaters.
+
+Die Anzahl der Geschwister ist allerdings nicht signifikant für den IQ des Kindes, da der t-Wert sehr klein ist. 
+Insgesamt werden etwa 47,13% der Variation im IQ des Kindes durch die im Modell enthaltenen unabhängigen Variablen erklärt.
+
+Der hohe F-Wert zusammen mit dem kleinen p-Wert deuten darauf hin, dass das gesamte Modell statistisch signifikant ist.
+
+### RSE
+
+Berechnen Sie den RSE. Was gibt dieser an?
+
+```{r}
+rse = summary(lm.iq)$sigma
+cat("Residual Standard Error (RSE):", round(rse, 2))
+```
+RSE gibt die durchschnittliche Abweichung der beobachteten Werte von den vorhergesagten Werten an.
+Das bedeutet, der tatsächliche IQ des Kindes weicht von den vorhergesagten Werten durchschnittlich um 10,73 Einheiten ab.
+
+### Anteil erklärter Varianz
+
+Wie groß (in Prozent) ist der Anteil der erklärten Varianz? Ist das Ergebnis zufriedenstellend?
+
+```{r}
+r_squared = summary(lm.iq)$r.squared
+cat("Multiple R-squared (R^2):", round(r_squared, 4)*100, "%")
+```
+Insgesamt werden etwa 47,13% der Variation im IQ des Kindes durch die im Modell enthaltenen unabhängigen Variablen erklärt.
+Es ist schwierig eine genaue Aussage darüber zu treffen, ob das Ergebnis "zufriedenstellend" ist. 
+Es wurden Merkmale untersucht, die definitiv mit dem IQ des Kindes korrelieren. 
+Allerdings lässt sich der IQ des Kindes auch nicht ausschließlich durch den IQ der Eltern vorhersagen.
+
+## Geschwister-Anzahl als Faktor
+
+### Anwendung
+
+Wandeln Sie den Datensatz so um, dass die Anzahl der Geschwister (`n.siblings`) ein Faktor ist und wenden Sie darauf die lineare Regression an.
+
+```{r}
+data$n.siblings = as.factor(data$n.siblings)
+lm.iq_factor = lm(IQ.child ~ IQ.mother + IQ.father + n.siblings, data = data)
+summary(lm.iq_factor)
+```
+
+$R^2$ hat sich verändert. Interpretieren bzw. begründen Sie das Ergebnis:
+
+Der Wert beträgt nun 66,37% im Vergleich zu 47,13% bei der vorherigen Auswertung.
+Es ist auffällig, dass die Anzahl der Geschwister nun doch mit dem IQ des Kindes korreliert, vor allem bei einer Anzahl von zwei oder drei Geschwistern im Gegensatz zu 0 Geschwistern. Bei einem oder vier Geschwistern gibt es allerdings keinen signifikanten Zusammenhang mit dem IQ.
+
+$R^2$ ist höher, da nun diese unterschiedliche Auswirkungen für die unterschiedlichen Geschwisterkategorien berücksichtigt werden können. Es gibt insegesamt mehr Koeffizienten, und insgesamt auch mehr Koeffizienten, die mit dem IQ korrelieren, womit sich die Erhöhung des $R^2$ Wertes begründen lässt.
+
+## Schätzung für Testdaten
+
+Abschließend soll mittels Cross-Validation überprüft werden, wie gut dieses Verfahren für unbekannte Testdaten funktioniert. Überlegen Sie sich ein passendes Verfahren und bestimmen Sie damit die $R^2$-Statistik.
+
+```{r}
+# use k-Fold-Cross-Validation
+train_control = trainControl(method = "cv", number = 5)
+
+cv_res = train(IQ.child ~ IQ.mother + IQ.father + n.siblings, 
+                    data = data, 
+                    method = "lm",
+                    trControl = train_control)
+
+print(cv_res)
+```
+Cross Validation erstellt mehrere Trainings- und Testsets und überprüft somit, wie gut das Verfahren für unbekannte Testdaten funktioniert. 
+$R^2$ beträgt hier ca. 65%. das Verfahren kann also auch bei unbekannten Daten ca. 65% der Variation im IQ der Kinder erklären.
+
+
