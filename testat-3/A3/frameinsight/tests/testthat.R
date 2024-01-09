@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(rrandom)
+library(frameinsight)
 
-test_check("rrandom")
+test_check("frameinsight")
