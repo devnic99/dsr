@@ -1,0 +1,25 @@
+# R specific
+*.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+
+# Ignore macOS specific files
+.DS_Store
+
+# Ignore knitr cache directories
+*_cache/
+*_files/
+
+# Ignore R Markdown output files
+*.md
+*.html
+*.pdf
+
+# Environment variables
+.Renviron
+
+# Ignore files produced by RStudio
+*.utf8
+*.RData
