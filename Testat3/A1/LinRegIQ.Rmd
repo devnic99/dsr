@@ -1,0 +1,133 @@
+---
+title: "Lineare Regression (IQ)"
+output: html_document
+---
+
+```{r echo = F, warning = F, message = F}
+# Laden Sie benötigte Libraries...
+#install.packages("caret")
+library(caret)
+```
+
+# Vorhersage des IQ mit linearer Regression
+
+In dieser Aufgabe soll mittels linearer Regression der Intelligenz-Quotient (IQ) von Kindern vorhergesagt werden.
+
+## Daten importieren und anschauen
+
+Laden Sie die Daten unter https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download in einen Data Frame. Die Daten sind im RDS-Format gespeichert. Der Datensatz stammt von Martin Brand (brandt@psychologie.uni-mannheim.de, https://www.sowi.uni-mannheim.de/kuhlmann/team/akademische-mitarbeiterinnen-und-mitarbeiter/brandt-martin/). Die Spalten bedeuten:
+
+ * `id`: Eindeutige Nummer
+ * `IQ.mother`: IQ der Mutter
+ * `IQ.father`: IQ des Vaters
+ * `n.siblings`: Anzahl der Geschwister
+ * `IQ.child`: IQ des Kindes
+
+```{r}
+# Ihre Lösung:
+df = readRDS(url("https://oc.informatik.hs-mannheim.de/s/K2nJQngd8N6o3M5/download"))
+```
+
+Verschaffen Sie sich einen ersten Überblick über die Daten. Plotten Sie dazu ein Mehrfach-Diagramm, das Scatterplots aller vier Variablen (drei Merkmale und Response `IQ.child`) untereinander zeigt. D.h. jede Variable soll mit jeder anderen paarweise verglichen werden.
+
+Tipp: Mit der `caret::featurePlot`-Funktion lässt sich das gut erreichen.
+
+```{r}
+# Ihre Lösung:
+# Laden Sie die Bibliothek
+library(caret)
+
+# Scatterplot-Matrix erstellen
+featurePlot(
+  x = df[, c("IQ.mother", "IQ.father", "n.siblings")],
+  y = df$IQ.child,
+  plot = "pairs",
+
+)
+
+
+```
+
+## Lineare Regression
+
+Wenden Sie für diesen Datensatz eine lineare Regression an, um den IQ von Kindern in Abhängigkeit der Merkmale schätzen zu können. Die lineare Regression soll im Objekt `lm.iq` gespeichert werden.
+
+```{r}
+# Ihre Lösung:
+lm.iq <- lm(IQ.child ~ IQ.mother + IQ.father + n.siblings, data = df) # abhängige Variable IQ.child
+lm.iq
+```
+
+### Merkmale
+
+Welche Merkmale spielen eine Rolle? Interpretieren Sie das Ergebnis.
+
+```{r}
+summary(lm.iq)
+# Ihre Lösung:
+# höherer IQ der Mutter mit einem höheren geschätzten IQ des Kindes verbunden
+# Anstieg  im IQ des Vaters geht mit einem geschätzten Anstieg von 0.3513 im IQ des Kindes einher
+#größere Anzahl von Geschwistern mit einem höheren geschätzten IQ des Kindes verbunden
+
+```
+
+
+### RSE
+
+Berechnen Sie den RSE. Was gibt dieser an?
+
+```{r}
+# Ihre Lösung:
+rse = summary(lm.iq)$sigma
+rse
+# Streuung der Residuen (Restwerte) in einer linearen Regression
+```
+
+### Anteil erklärter Varianz
+
+Wie groß (in Prozent) ist der Anteil der erklärten Varianz? Ist das Ergebnis zufriedenstellend?
+
+```{r}
+# Ihre Lösung:
+# Anteil ist 47,13% groß. Ein höherer Wert deutet darauf hin, dass das Modell besser zur Erklärung der Varianz geeignet ist.
+```
+
+## Geschwister-Anzahl als Faktor 
+
+### Anwendung
+
+Wandeln Sie den Datensatz so um, dass die Anzahl der Geschwister (`n.siblings`) ein Faktor ist und wenden Sie darauf die lineare Regression an.
+
+```{r}
+# Ihre Lösung:
+df$n.siblings <- as.factor(df$n.siblings)
+lm.iq_factor <- lm(IQ.child ~ IQ.mother + IQ.father + n.siblings, data = df)
+summary(lm.iq_factor)
+```
+
+### $R^2$
+
+$R^2$ hat sich verändert. Interpretieren bzw. begründen Sie das Ergebnis:
+
+
+## Schätzung für Testdaten
+
+Abschließend soll mittels Cross-Validation überprüft werden, wie gut dieses Verfahren für unbekannte Testdaten funktioniert. Überlegen Sie sich ein passendes Verfahren und bestimmen Sie damit die $R^2$-Statistik.
+
+```{r}
+# Ihre Lösung:
+
+ctrl <- trainControl(method = "cv", number = 5) # wird 5 mal trainiert
+
+
+cv_results <- train(IQ.child ~ IQ.mother + IQ.father + n.siblings, 
+                    data = df, 
+                    method = "lm",
+                    preProcess ="scale",
+                    trControl = ctrl)
+
+print(cv_results)
+```
+
+
+
