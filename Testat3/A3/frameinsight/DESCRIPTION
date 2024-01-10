@@ -1,14 +1,16 @@
 Package: frameinsight
 Title: Erkunden und visualisieren von Dataframes
 Version: 0.0.0.9000
-Authors@R: 
-     person("Max", "1921234@stud.hs-mannheim.de" role = c("aut", "cre")),
-    person("Nicole", role = "aut"),
-    person("Michelle", role = "aut")
-Description: Bietet Funktionen zur Erkundung von Datenrahmen und zur Darstellung als Boxplots
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Authors@R: c(
+     person("Max", " ", role = c("aut", "cre"), email = "1921234@stud.hs-mannheim.de"),
+    person("Nicole", " ", role = "aut"),
+    person("Michelle"," ", role = "aut"))
+Description: Das Package ermöglichen die Erstellung von Boxplots für numerische Spalten, die Überprüfung auf fehlende Werte (NA) in einer Spalte, sowie eine detaillierte Zusammenfassung eines Dataframes.
+License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Suggests: ggplot2
+Suggests:
+    ggplot2,
+    testthat
+
