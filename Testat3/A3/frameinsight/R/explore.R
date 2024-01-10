@@ -71,7 +71,7 @@ describe = function(df) {
 #' data <- data.frame(income = c(50000, 60000, 75000, 80000))
 #' has_NA(data$income)  # Gibt FALSE zurück, da keine fehlenden Werte vorhanden sind
 #'
-#' @keywords Datenüberprüfung, fehlende Werte
+#' 
 
 #' @return
 has_NA = function(col)
