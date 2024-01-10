@@ -6,9 +6,9 @@
 #'
 #' @return
 #' Boxplots für alle numerischen Spalten im Datenframe. Wenn es keine numerischen Spalten gibt, wird eine Warnung ausgegeben.
-#'
 #' @examples
 #' # Beispiel mit einem Datenframe namens 'data'
+#' library(ggplot2)
 #' data <- data.frame(
 #'   age = sample(18:60, 100, replace = TRUE),
 #'   income = rnorm(100, mean = 50000, sd = 10000),
