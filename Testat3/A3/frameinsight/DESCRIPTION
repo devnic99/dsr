@@ -2,7 +2,7 @@ Package: frameinsight
 Title: Erkunden und visualisieren von Dataframes
 Version: 0.0.0.9000
 Authors@R: 
-     person("Max", "",, "1921234@stud.hs-mannheim.de" role = c("aut", "cre")),
+     person("Max", "1921234@stud.hs-mannheim.de" role = c("aut", "cre")),
     person("Nicole", role = "aut"),
     person("Michelle", role = "aut")
 Description: Bietet Funktionen zur Erkundung von Datenrahmen und zur Darstellung als Boxplots
