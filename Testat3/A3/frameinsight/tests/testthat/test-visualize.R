@@ -1,4 +1,5 @@
 library(testthat)
+library(ggplot2)
 # note for presentation: run devtools::test() to run test
 
 # Test 1: Check if the function shows warning for dataframe with no numeric columns
