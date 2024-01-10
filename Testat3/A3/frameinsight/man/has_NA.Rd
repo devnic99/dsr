@@ -15,16 +15,3 @@ Die Funktion gibt einen logischen Wert zurück: TRUE, wenn es fehlende Werte gib
 \description{
 Überprüfung auf fehlende Werte (NA) in einer Spalte
 }
-\examples{
-# Beispiel mit einer Datenframe-Spalte namens 'age'
-data <- data.frame(age = c(25, 30, NA, 40, 22))
-has_NA(data$age)  # Gibt TRUE zurück, da es einen fehlenden Wert gibt
-
-# Beispiel mit einer Datenframe-Spalte namens 'income'
-data <- data.frame(income = c(50000, 60000, 75000, 80000))
-has_NA(data$income)  # Gibt FALSE zurück, da keine fehlenden Werte vorhanden sind
-
-}
-\keyword{Datenüberprüfung,}
-\keyword{Werte}
-\keyword{fehlende}
